@@ -1,0 +1,39 @@
+version: '3.5'
+
+services:
+   gitlab:
+      image: gitlab/gitlab-ce:latest
+      container_name: 'gitlab'
+      restart: always
+      hostname: 'gitlab.localhost'
+      environment:
+         GITLAB_OMNIBUS_CONFIG: |
+            external_url 'https://gitlab.localhost'
+            letsencrypt['enable'] = false
+      ports: 
+         - '80:80'
+         - '443:443'
+      volumes:
+         - './data/config:/etc/gitlab'
+         - './data/logs:/var/log/gitlab'
+         - './data/data:/var/opt/gitlab'
+      networks:
+         internal_network:
+            ipv4_address: 172.20.1.2
+            
+   gitlab-runner:
+      image: gitlab/gitlab-runner:latest
+      container_name: 'gitlab-runner'
+      volumes:
+         - './data/config-runner:/etc/gitlab-runner'
+         - '/var/run/docker.sock:/var/run/docker.sock'
+      networks:
+         internal_network:
+             ipv4_address: 172.20.1.3
+             
+networks:
+   internal_network:
+      ipam:
+         driver: default
+         config:
+            - subnet: "172.20.1.0/24"
